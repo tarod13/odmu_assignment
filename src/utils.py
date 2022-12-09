@@ -39,3 +39,16 @@ def length_combination2id_sequence(combination):
         else:
             ids.append(l + ids[-1])
     return ids 
+
+def calculate_average_reward_from_sequences(solver, sequences):
+    selected_elements = solver.select_at_most_k(sequences)
+    cumulative_reward = np.stack(selected_elements, axis=0).sum(0)
+    avg_cumulative_reward = cumulative_reward.mean()
+    std_cumulative_reward = cumulative_reward.std()
+    return avg_cumulative_reward, std_cumulative_reward
+
+def eliminate_nsamples_repeated(array_):
+    for i in range(1,len(array_)):
+        if array_[i] <= array_[i-1]:
+            array_[i] = array_[i-1]+1
+    return array_

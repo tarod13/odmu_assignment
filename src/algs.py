@@ -1,38 +1,50 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from secretary import SecretaryGame
-from utils import find_length_combinations, length_combination2id_sequence
+from src.prophet import ProphetGame
+from src.utils import find_length_combinations, length_combination2id_sequence
 
 
-class SecretarySolver(ABC):
+class ProphetSolver(ABC):
     def __init__(self, n: int, k: int = 1):
         self.n = n
         self.k = k
         self.thresholds = k*[0]
-        self.threshold_ids = k*[0]
+        self.threshold_ids = k*[0]   # TODO: take these values into account (?)
     
     @abstractmethod
-    def set_thresholds(self, prophet_value: float):
+    def set_thresholds(self, prophet_values):
         ...
         
     def select_at_most_k(self, sequences):
         n_samples = sequences.shape[1]
         valid_sequences = sequences.copy()
         selected_elements = []
-        for i in range(self.k): 
+        for i in range(self.k):
+            # Creates fiter for values that overcome threshold 
             over_threshold = valid_sequences > self.thresholds[i]
+            
+            # Determine samples for which at least 
+            # one value overcomes threshold 
             valid_columns = over_threshold.max(axis=0, keepdims=True)
+            
+            # Filter out samples with no good values, as per the threhold
             valid_sequences *= valid_columns
+
+            # Find the first element in each sample that overcomes the threshold
             indices_i_element = np.argmax(over_threshold, axis=0)
+
+            # Store selected elements for each sample 
             selected_elements.append(
                 valid_sequences[indices_i_element, np.arange(n_samples)].copy()
             )
+
+            # Remove selected elements from the samples
             valid_sequences[indices_i_element, np.arange(n_samples)] = 0
         return selected_elements        
 
-class IndependentSecretarySolver(SecretarySolver):
-    def set_thresholds(self, prophet_dict: float):
+class IndependentProphetSolver(ProphetSolver):
+    def set_thresholds(self, prophet_dict: dict):
         length_combinations = find_length_combinations(self.n, self.k)
         best_combination = None
         best_thresholds = None
@@ -55,23 +67,31 @@ class IndependentSecretarySolver(SecretarySolver):
         self.threshold_ids = length_combination2id_sequence(best_combination)
 
 
+class StaticProphetSolver(ProphetSolver):
+    def set_thresholds(self, prophet_value: float):
+        self.thresholds = self.k*[prophet_value]
+
+
 if __name__ == '__main__':
 
     n = 10
     k = 2
     n_samples = 100000
 
+    # Set game parameters
     means = np.ones([n,1]) + np.random.randn(n,1)
     vars = np.ones([n,1])
     a = -0*np.ones(n,)
     b = 3*np.ones(n,)
     limits = np.stack((a,b), axis=1)
 
-    game = SecretaryGame(means, vars, limits)
+    # Create game
+    game = ProphetGame(means, vars, limits)
     pv = game.estimate_prophet_value(100000, k)[0]
     print(f'Prophet value: {pv:.3f}')
 
-    solver = IndependentSecretarySolver(n=n, k=k)
+    # Create solver and set its thresholds based on 
+    solver = IndependentProphetSolver(n=n, k=k)
     solver.set_thresholds(game.prophet_dict)
     print(f'Thresholds: {solver.thresholds}')
     print(f'Threshold_ids: {solver.threshold_ids}')
