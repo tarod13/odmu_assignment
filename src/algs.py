@@ -9,8 +9,8 @@ class ProphetSolver(ABC):
     def __init__(self, n: int, k: int = 1):
         self.n = n
         self.k = k
-        self.thresholds = k*[0]
-        self.threshold_ids = k*[0]   # TODO: take these values into account (?)
+        self.thresholds = n*[0]
+        self.threshold_ids = n*[0]   # TODO: take these values into account (?)
     
     @abstractmethod
     def set_threshold(self, prophet_values):
@@ -22,7 +22,7 @@ class ProphetSolver(ABC):
         selected_elements = []
         for i in range(self.k):
             # Creates fiter for values that overcome threshold 
-            over_threshold = valid_sequences > self.thresholds[i]
+            over_threshold = valid_sequences > np.array(self.thresholds).reshape(-1,1)
             
             # Determine samples for which at least 
             # one value overcomes threshold 
@@ -69,10 +69,22 @@ class IndependentProphetSolver(ProphetSolver):
 
 class StaticProphetSolver(ProphetSolver):
     def set_threshold(self, threshold: float):
-        self.thresholds = self.k*[threshold]
+        self.thresholds = self.n*[threshold]
 
     def set_prophet_threshold(self, prophet_value: float):
         self.set_threshold(prophet_value/(self.k + 1))
+
+class DynamicProphetSolver(ProphetSolver):
+    def set_threshold(self, prophet_dict: dict):
+        thresholds = []
+        for i in range(self.n):
+            # Calculate value associated to each combination of lengths
+            length = self.n - i
+            value = prophet_dict['prophet_values'][(length,i)]
+            thresholds.append(value / (self.k + 1))
+
+        self.thresholds = thresholds
+        self.threshold_ids = list(range(self.n))
 
 
 if __name__ == '__main__':
