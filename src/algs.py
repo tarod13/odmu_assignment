@@ -13,7 +13,7 @@ class ProphetSolver(ABC):
         self.threshold_ids = k*[0]   # TODO: take these values into account (?)
     
     @abstractmethod
-    def set_thresholds(self, prophet_values):
+    def set_threshold(self, prophet_values):
         ...
         
     def select_at_most_k(self, sequences):
@@ -44,7 +44,7 @@ class ProphetSolver(ABC):
         return selected_elements        
 
 class IndependentProphetSolver(ProphetSolver):
-    def set_thresholds(self, prophet_dict: dict):
+    def set_threshold(self, prophet_dict: dict):
         length_combinations = find_length_combinations(self.n, self.k)
         best_combination = None
         best_thresholds = None
@@ -68,8 +68,11 @@ class IndependentProphetSolver(ProphetSolver):
 
 
 class StaticProphetSolver(ProphetSolver):
-    def set_thresholds(self, prophet_value: float):
-        self.thresholds = self.k*[prophet_value]
+    def set_threshold(self, threshold: float):
+        self.thresholds = self.k*[threshold]
+
+    def set_prophet_threshold(self, prophet_value: float):
+        self.set_threshold(prophet_value/(self.k + 1))
 
 
 if __name__ == '__main__':
