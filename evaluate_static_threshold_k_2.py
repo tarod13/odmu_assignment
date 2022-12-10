@@ -63,13 +63,13 @@ if __name__ == '__main__':
     k = 2
     n = 100
     prophet_samples = 1e5
-    n_iters = 2
+    n_iters = 50
 
     # Set game parameters   # TODO: consider other type of distributions
-    means = 1+np.ones([n,1]) + np.random.randn(n,1)
+    means = 0*np.linspace(3,6,n).reshape(-1,1) + 1*np.ones([n,1]) + 1*np.random.randn(n,1)
     vars = 2*np.random.rand(n,1) + 1e-6
     a = np.random.rand(n,)
-    b = 20*np.random.rand(n,) + a
+    b = 0*np.ones_like(a) + 5*np.random.rand(n,) + a
     limits = np.stack((a,b), axis=1)
 
     # Execute evaluations
@@ -102,6 +102,7 @@ if __name__ == '__main__':
     ax.tick_params(axis='both', which='major', labelsize=15)
     plt.legend()
     plt.grid()
+    plt.ylim((0,1))
     plt.savefig(f'./plots/competitive_ratios_k_{k}.pdf', dpi=600)
     plt.show()
     plt.close()
