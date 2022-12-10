@@ -39,10 +39,10 @@ def run_evaluation(
 
     # Create solvers and set their thresholds 
     max_solver = StaticProphetSolver(n=n, k=k)
-    max_solver.set_thresholds(max_threshold)
+    max_solver.set_threshold(max_threshold)
 
     median_solver = StaticProphetSolver(n=n, k=k)
-    median_solver.set_thresholds(median_threshold)
+    median_solver.set_threshold(median_threshold)
     
     # Estimate E[OPT] and E[ALG]
     sequences = game.sample_sequences(n_samples=n_samples)
@@ -77,9 +77,9 @@ if __name__ == '__main__':
     Path("./plots").mkdir(parents=True, exist_ok=True)
 
     k = 1
-    n = 1
+    n = 100
     prophet_samples = 1e5
-    n_iters = 10
+    n_iters = 50
 
     # Set game parameters   # TODO: consider other type of distributions
     means = 1+np.ones([n,1]) + np.random.randn(n,1)
@@ -127,6 +127,6 @@ if __name__ == '__main__':
     ax.tick_params(axis='both', which='major', labelsize=15)
     plt.legend()
     plt.grid()
-    plt.savefig('./plots/competitive_ratios_k_1.pdf', dpi=600)
+    plt.savefig('./plots/competitive_ratios_k_{k}.pdf', dpi=600)
     plt.show()
     plt.close()
