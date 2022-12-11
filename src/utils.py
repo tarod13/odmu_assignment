@@ -4,9 +4,10 @@ import numpy as np
 def find_k_max(x, k):
     '''Returns the largest k values in each column of the matrix x.'''
     if k > x.shape[0]:
-        raise ValueError(
-            f'k can be at most the lenght of the sequences. ' + 
-            f'Got k={k} and lenght={x.shape[0]}')
+        # raise ValueError(
+        #     f'k can be at most the lenght of the sequences. ' + 
+        #     f'Got k={k} and lenght={x.shape[0]}')
+        k = x.shape[0]
 
     max_indices = np.argpartition(x, kth=-k, axis=0)[-k:]
     max_values = x[max_indices, np.arange(x.shape[1])]

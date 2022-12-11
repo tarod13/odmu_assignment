@@ -14,6 +14,7 @@ class ProphetGame:
         rng: np.random.Generator = None,
         n_samples_prophet: int = 10000,
         init_prophet: bool = True,
+        k: int = 1,
         **kwargs
     ):
         '''Create prophet game with truncated Gaussian distributions.'''
@@ -24,7 +25,7 @@ class ProphetGame:
         self.standard_limits = (limits - means) / self.stds
         self.rng = rng    
         if init_prophet:
-            self.estimate_sub_prophet_values(n_samples_prophet)
+            self.estimate_sub_prophet_values(n_samples_prophet, k=k)
    
     def sample_sequences(self, n_samples) -> np.ndarray:
         '''Sample the given number of sequences.'''
@@ -66,7 +67,7 @@ class ProphetGame:
         median_threshold = np.median(cumulative_reward)
         return expected_cumulative_reward, max_threshold, median_threshold
 
-    def estimate_sub_prophet_values(self, n_samples: int = 10000):
+    def estimate_sub_prophet_values(self, n_samples: int = 10000, k: int = 1):
         '''Calculate prophet values for all possible subsequences.'''
         self.prophet_dict = {
             'prophet_values' : {}, 
@@ -75,7 +76,7 @@ class ProphetGame:
         }
         vars = self.stds**2
         for l in tqdm(range(1, self.steps+1)):
-            for i in range(0, self.steps-l+1):
+            for i in [self.steps-l]: #range(0, self.steps-l+1):
                 # Set values for sub-game
                 sub_means = self.means[i:i+l,:]
                 sub_vars = vars[i:i+l,:]
@@ -87,7 +88,7 @@ class ProphetGame:
 
                 # Estimate prophet value and thresholds for sub-game
                 sub_prophet_value, sub_max_threshold, sub_median_threshold = (
-                    sub_game.estimate_prophet_value(n_samples, k=1))
+                    sub_game.estimate_prophet_value(n_samples, k=k))
 
                 # Store estimation (l,i).
                 # l is the lenght of the subsequence, 
